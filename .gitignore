@@ -44,4 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+.env
 lib/services/news_service.dart
+
+# Local environment configuration .env .env.* !.env.example 
