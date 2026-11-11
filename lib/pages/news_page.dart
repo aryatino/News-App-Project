@@ -47,6 +47,15 @@ class _NewsPageState extends State<NewsPage> {
     });
   }
 
+  // Sesuai contoh panduan guru (nama fungsi retry)
+  void _retryFetch() {
+    setState(() {
+      _newsFuture = NewsService().fetchTopHeadlines(
+        category: _selectedCategory,
+      );
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -109,6 +118,7 @@ class _NewsPageState extends State<NewsPage> {
             ),
           ),
 
+          // 3. KOTAK FILTER LOKAL (Tambahan aman di luar FutureBuilder)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: TextField(
@@ -136,7 +146,7 @@ class _NewsPageState extends State<NewsPage> {
             ),
           ),
 
-          // 3. FUTUREBUILDER DARI PERTEMUAN 1 (Dibungkus Expanded)
+          // 4. FUTUREBUILDER SESUAI STRUKTUR MODUL GURU
           Expanded(
             child: FutureBuilder<List<Article>>(
               future: _newsFuture,
@@ -144,6 +154,7 @@ class _NewsPageState extends State<NewsPage> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+
                 if (snapshot.hasError) {
                   return Center(
                     child: Padding(
@@ -151,23 +162,15 @@ class _NewsPageState extends State<NewsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline, size: 48),
+                          const Icon(Icons.wifi_off, size: 48),
                           const SizedBox(height: 12),
-                          const Text('Gagal mengambil berita'),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${snapshot.error}',
+                          const Text(
+                            'Berita gagal dimuat. Periksa koneksi lalu coba lagi.',
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _newsFuture = _newsService.fetchTopHeadlines(
-                                  category: _selectedCategory,
-                                );
-                              });
-                            },
+                            onPressed: _retryFetch,
                             child: const Text('Coba Lagi'),
                           ),
                         ],
@@ -175,17 +178,21 @@ class _NewsPageState extends State<NewsPage> {
                     ),
                   );
                 }
-                final List<Article> articles = snapshot.data ?? [];
 
+                final articles = snapshot.data ?? [];
+
+                if (articles.isEmpty) {
+                  return const Center(child: Text('Berita tidak ditemukan.'));
+                }
+
+                // Sesuai catatan modul: Letakkan kode filter dan ListView.builder di sini
                 final List<Article> filteredArticles = filterByTitle(
                   articles,
                   _localKeyword,
                 );
 
                 if (filteredArticles.isEmpty) {
-                  return const Center(
-                    child: Text('Tidak ada berita yang cocok.'),
-                  );
+                  return const Center(child: Text('Berita tidak ditemukan.'));
                 }
 
                 return ListView.builder(
